@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}角色管理{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h2>角色管理</h2>
+  <a class="btn btn-primary" href="{{ url_for('admin.role_new') }}">+ 新建角色</a>
+</div>
+
+<div class="card">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>#</th><th>排序</th><th>name</th><th>display_name</th><th>组</th>
+        <th>立场</th><th>启用</th><th>思考</th><th>温度</th><th>max_tokens</th><th>内置</th><th>操作</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for r in roles %}
+      <tr>
+        <td>{{ r.id }}</td>
+        <td>{{ r.sort_order }}</td>
+        <td><code>{{ r.name }}</code></td>
+        <td>{{ r.display_name }}</td>
+        <td>{{ r.role_group }}</td>
+        <td>{{ r.stance }}</td>
+        <td>{{ '✅' if r.enabled else '⛔' }}</td>
+        <td>{{ '✅' if r.use_thinking else '⛔' }}</td>
+        <td>{{ r.temperature }}</td>
+        <td>{{ r.max_tokens }}</td>
+        <td>{{ '✅' if r.is_builtin else '' }}</td>
+        <td>
+          <a class="btn btn-ghost" href="{{ url_for('admin.role_edit', role_id=r.id) }}">编辑</a>
+          <form method="post" action="{{ url_for('admin.role_toggle', role_id=r.id) }}" style="display:inline">
+            <button class="btn btn-ghost" type="submit">{{ '停用' if r.enabled else '启用' }}</button>
+          </form>
+          {% if not r.is_builtin %}
+          <form method="post" action="{{ url_for('admin.role_delete', role_id=r.id) }}" style="display:inline" onsubmit="return confirm('确认删除?')">
+            <button class="btn btn-ghost danger" type="submit">删除</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

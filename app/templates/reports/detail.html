@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+{% block title %}{{ report.title }} - 详情{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h2>{{ report.title }}</h2>
+    <p class="muted small">交易日 {{ report.trade_date }} · 创建于 {{ report.created_at|datetime }} · 用时 {{ report.duration_ms or '—' }} ms</p>
+  </div>
+  <div class="actions">
+    <span id="status-badge" class="badge badge-{{ report.status }}">
+      {% if report.status == 'ready' %}已完成{% elif report.status == 'failed' %}失败{% elif report.status == 'generating' %}生成中{% else %}排队中{% endif %}
+    </span>
+    <form method="post" action="{{ url_for('reports.regenerate', report_id=report.id) }}">
+      <button class="btn btn-ghost" type="submit" {% if report.status == 'generating' %}disabled{% endif %}>重新生成</button>
+    </form>
+  </div>
+</div>
+
+{% if report.status == 'failed' and report.error_message %}
+<div class="card danger">
+  <h3>生成失败</h3>
+  <pre class="code">{{ report.error_message }}</pre>
+</div>
+{% endif %}
+
+{% if report.raw_context %}
+<details class="card">
+  <summary><strong>采集到的 raw_context</strong> ({{ report.raw_context|length }} 字符,{% if '[auto-collected]' in report.raw_context %}自动采集{% else %}用户填写{% endif %})</summary>
+  <pre class="code" style="max-height:400px;overflow:auto;">{{ report.raw_context }}</pre>
+</details>
+{% endif %}
+
+{% set snap = payload.get('snapshot', {}) %}
+{% set mkt = payload.get('market_judgment', {}) %}
+{% set sent = payload.get('sentiment_judgment', {}) %}
+{% set ladder = payload.get('limit_up_ladder', {}) %}
+{% set themes = payload.get('theme_map', []) %}
+{% set plan = payload.get('action_plan', {}) %}
+
+<div class="card">
+  <h3 class="card-title">总览</h3>
+  <p><strong>{{ payload.get('summary', '—') }}</strong></p>
+  {% if payload.get('overview') %}<p class="muted">{{ payload.overview }}</p>{% endif %}
+</div>
+
+{% if snap %}
+<div class="card">
+  <h3 class="card-title">盘面快照</h3>
+  <div class="snapshot-grid">
+    {% for key in ['SSE', 'ChiNext', 'TotalVolume', 'BoardHeight', 'LimitUpDown', 'AdvanceDecline', 'EmotionTemp', 'USOvernight'] %}
+      {% set item = snap.get(key) %}
+      {% if item %}
+      <div class="snap-item">
+        <div class="snap-label">{{ key }}</div>
+        <div class="snap-value">{{ item.value }}</div>
+        <div class="snap-desc muted">{{ item.label }}</div>
+      </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% if mkt %}
+<div class="card">
+  <h3 class="card-title">市场判断</h3>
+  <table class="table compact">
+    <tbody>
+      <tr><th style="width:120px">核心矛盾</th><td>{{ mkt.get('core_conflict', '—') }}</td></tr>
+      <tr><th>今日节奏</th><td>{{ mkt.get('today_tone', '—') }}</td></tr>
+      <tr><th>支撑</th><td>{{ mkt.get('support', '—') }}</td></tr>
+      <tr><th>压力</th><td>{{ mkt.get('resistance', '—') }}</td></tr>
+      <tr><th>量能</th><td>{{ mkt.get('volume', '—') }}</td></tr>
+      <tr><th>结论</th><td><strong>{{ mkt.get('conclusion', '—') }}</strong></td></tr>
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+{% if sent %}
+<div class="card">
+  <h3 class="card-title">情绪判断</h3>
+  <table class="table compact">
+    <tbody>
+      <tr><th style="width:160px">周期标签</th><td>{{ (sent.cycle_tags or [])|join(' / ') or '—' }}</td></tr>
+      <tr><th>当前状态</th><td>{{ sent.get('current_state', '—') }}</td></tr>
+      <tr><th>监管</th><td>{{ sent.get('regulation', '—') }}</td></tr>
+      <tr><th>今日变量</th><td>{{ sent.get('today_variable', '—') }}</td></tr>
+      <tr><th>惯性</th><td>{{ sent.get('inertia', '—') }}</td></tr>
+      <tr><th>竞价观察</th><td>{{ sent.get('auction_observation', '—') }}</td></tr>
+      <tr><th>风险</th><td>
+        {% if sent.get('risks') %}
+        <ul class="bullets">{% for r in sent.risks %}<li>{{ r }}</li>{% endfor %}</ul>
+        {% else %}—{% endif %}
+      </td></tr>
+      <tr><th>铁律</th><td>{{ sent.get('iron_rule', '—') }}</td></tr>
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+{% if ladder %}
+<div class="card">
+  <h3 class="card-title">涨停梯队</h3>
+  {% for k in ['5', '4', '3', '2'] %}
+    {% set rows = ladder.get(k) %}
+    {% if rows %}
+    <h4 class="board-head">{{ k }} 连板</h4>
+    <table class="table compact">
+      <thead><tr><th style="width:30%">名称</th><th style="width:15%">代码</th><th>标签</th><th>备注</th></tr></thead>
+      <tbody>
+      {% for row in rows %}
+        <tr>
+          <td>{{ row.get('name', '—') }}</td>
+          <td>{{ row.get('code', '—') }}</td>
+          <td>{{ row.get('tags', '—') }}</td>
+          <td>{{ row.get('note', '') }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+  {% endfor %}
+  {% if ladder.get('1') %}
+  <p class="muted"><strong>首板:</strong>{{ ladder.get('1') }}</p>
+  {% endif %}
+  {% if ladder.get('non_board') %}
+  <p class="muted"><strong>非板:</strong>{{ ladder.get('non_board')|join(' / ') }}</p>
+  {% endif %}
+</div>
+{% endif %}
+
+{% if themes %}
+<div class="card">
+  <h3 class="card-title">题材地图</h3>
+  <table class="table">
+    <thead>
+      <tr><th>题材</th><th>强度</th><th>龙头</th><th>今日动作</th></tr>
+    </thead>
+    <tbody>
+    {% for t in themes %}
+      <tr>
+        <td>{{ t.get('theme', '—') }}</td>
+        <td>{{ t.get('strength', '—') }}</td>
+        <td>
+          {% for l in t.get('leaders', []) %}
+            <div>{{ l.get('name', '—') }} ({{ l.get('code', '—') }}) - {{ l.get('status', '') }}</div>
+          {% endfor %}
+        </td>
+        <td>{{ t.get('today_action', '—') }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+{% if plan %}
+<div class="card">
+  <h3 class="card-title">操作计划</h3>
+  <div class="plan-grid">
+    <div><h4>进攻</h4>
+      {% if plan.get('offense') %}<ul class="bullets">{% for x in plan.offense %}<li>{{ x }}</li>{% endfor %}</ul>{% else %}—{% endif %}
+    </div>
+    <div><h4>防守</h4>
+      {% if plan.get('defense') %}<ul class="bullets">{% for x in plan.defense %}<li>{{ x }}</li>{% endfor %}</ul>{% else %}—{% endif %}
+    </div>
+    <div><h4>战术</h4>
+      {% if plan.get('tactics') %}<ul class="bullets">{% for x in plan.tactics %}<li>{{ x }}</li>{% endfor %}</ul>{% else %}—{% endif %}
+    </div>
+    <div><h4>最大风险</h4><p>{{ plan.get('max_risk', '—') }}</p></div>
+    <div><h4>仓位控制</h4><p>{{ plan.get('position_control', '—') }}</p></div>
+  </div>
+</div>
+{% endif %}
+
+{% if payload_pretty %}
+<details class="card" open>
+  <summary><strong>完整 JSON</strong></summary>
+  <pre class="code">{{ payload_pretty }}</pre>
+</details>
+{% endif %}
+
+{% if role_runs %}
+<details class="card">
+  <summary><strong>审议过程 (按角色)</strong></summary>
+  <div class="role-runs">
+    {% for r in role_runs %}
+    <div class="role-run">
+      <div class="role-run-head">
+        <span class="role-name">{{ r.role_name_snapshot }}</span>
+        <span class="muted small">[{{ r.role_group_snapshot }}]</span>
+        <span class="badge badge-{{ r.status }}">{{ r.status }}</span>
+        {% if r.duration_ms %}<span class="muted small">{{ r.duration_ms }}ms</span>{% endif %}
+      </div>
+      <details>
+        <summary>输入</summary>
+        <pre class="code">{{ r.input_payload or '' }}</pre>
+      </details>
+      <details>
+        <summary>输出</summary>
+        <pre class="code">{{ r.output_payload or '' }}</pre>
+      </details>
+      {% if r.error_message %}
+      <pre class="code danger">{{ r.error_message }}</pre>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</details>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if report.status in ('draft', 'generating') %}
+<script>
+  // 自动轮询状态直到 ready/failed
+  (function(){
+    const badge = document.getElementById('status-badge');
+    const url = "{{ url_for('reports.status_json', report_id=report.id) }}";
+    let tries = 0;
+    const tick = () => {
+      tries += 1;
+      fetch(url).then(r=>r.json()).then(d=>{
+        if (d.status === 'ready' || d.status === 'failed') {
+          location.reload();
+          return;
+        }
+        if (tries < 60) setTimeout(tick, 5000);
+      }).catch(()=>{ if (tries < 60) setTimeout(tick, 10000); });
+    };
+    setTimeout(tick, 4000);
+  })();
+</script>
+{% endif %}
+{% endblock %}

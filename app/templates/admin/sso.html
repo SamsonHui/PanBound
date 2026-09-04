@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}SSO Provider{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h2>SSO Provider</h2>
+  <a class="btn btn-primary" href="{{ url_for('admin.sso_new') }}">+ 新建 Provider</a>
+</div>
+
+<div class="card">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>#</th><th>name</th><th>display_name</th><th>type</th><th>scope</th><th>auto_create</th><th>enabled</th><th>操作</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for p in providers %}
+      <tr>
+        <td>{{ p.id }}</td>
+        <td><code>{{ p.name }}</code></td>
+        <td>{{ p.display_name }}</td>
+        <td>{{ p.provider_type }}</td>
+        <td>{{ p.scope }}</td>
+        <td>{{ '✅' if p.auto_create_user else '⛔' }}</td>
+        <td>{{ '✅' if p.enabled else '⛔' }}</td>
+        <td>
+          <a class="btn btn-ghost" href="{{ url_for('admin.sso_edit', provider_id=p.id) }}">编辑</a>
+          <form method="post" action="{{ url_for('admin.sso_toggle', provider_id=p.id) }}" style="display:inline">
+            <button class="btn btn-ghost" type="submit">{{ '停用' if p.enabled else '启用' }}</button>
+          </form>
+          <form method="post" action="{{ url_for('admin.sso_delete', provider_id=p.id) }}" style="display:inline" onsubmit="return confirm('确认删除?')">
+            <button class="btn btn-ghost danger" type="submit">删除</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}500{% endblock %}
+{% block content %}
+<div class="card danger">
+  <h2>500 · 服务器错误</h2>
+  <p class="muted">服务暂时不可用,请稍后再试,或联系管理员。</p>
+  <a class="btn btn-primary" href="{{ url_for('dashboard') }}">回到首页</a>
+</div>
+{% endblock %}

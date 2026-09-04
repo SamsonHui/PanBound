@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}登录 - {{ site_name }}{% endblock %}
+{% block body_class %}auth-body{% endblock %}
+{% block content %}
+<div class="auth-card">
+  <h1 class="auth-title">{{ site_name }}</h1>
+  <p class="auth-sub muted">本地账号登录</p>
+
+  <form method="post" class="auth-form">
+    {{ form.hidden_tag() }}
+    <div class="form-row">
+      <label>{{ form.username.label.text }}</label>
+      {{ form.username(class="input", autocomplete="username") }}
+      {% for e in form.username.errors %}<small class="err">{{ e }}</small>{% endfor %}
+    </div>
+    <div class="form-row">
+      <label>{{ form.password.label.text }}</label>
+      {{ form.password(class="input", autocomplete="current-password") }}
+      {% for e in form.password.errors %}<small class="err">{{ e }}</small>{% endfor %}
+    </div>
+    <div class="form-row captcha-row">
+      {{ form.captcha(class="input captcha-input", autocomplete="off", placeholder="验证码") }}
+      {{ form.captcha_key(type="hidden", value=captcha_key) }}
+      <img class="captcha-img" src="data:image/png;base64,{{ captcha_png_b64 }}" alt="captcha" />
+      {% for e in form.captcha.errors %}<small class="err">{{ e }}</small>{% endfor %}
+    </div>
+    <button type="submit" class="btn btn-primary btn-block">登录</button>
+  </form>
+
+  {% if providers %}
+  <div class="sso-divider"><span>或使用企业 SSO</span></div>
+  <div class="sso-buttons">
+    {% for p in providers %}
+      <a class="btn btn-sso" href="{{ url_for('sso.login', provider_id=p.id) }}">{{ p.display_name }}</a>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

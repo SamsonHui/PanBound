@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}用户管理{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h2>用户管理</h2>
+</div>
+
+<div class="card">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>#</th><th>用户名</th><th>邮箱</th><th>显示名</th><th>角色</th><th>状态</th><th>最后登录</th><th>创建</th><th>操作</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for u in users %}
+      <tr>
+        <td>{{ u.id }}</td>
+        <td>{{ u.username }}</td>
+        <td>{{ u.email or '—' }}</td>
+        <td>{{ u.display_name or '—' }}</td>
+        <td>{{ u.role }}</td>
+        <td>{{ '✅' if u.is_active else '⛔' }}</td>
+        <td>{{ u.last_login_at|datetime or '—' }}</td>
+        <td>{{ u.created_at|datetime }}</td>
+        <td>
+          <a class="btn btn-ghost" href="{{ url_for('admin.user_edit', uid=u.id) }}">编辑</a>
+          <form method="post" action="{{ url_for('admin.user_toggle', uid=u.id) }}" style="display:inline">
+            <button class="btn btn-ghost" type="submit">{{ '停用' if u.is_active else '启用' }}</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

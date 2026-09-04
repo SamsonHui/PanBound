@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}新建报告 - {{ site_name }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h2>新建复盘报告</h2>
+  <a class="btn btn-ghost" href="{{ url_for('reports.index') }}">返回</a>
+</div>
+
+<div class="card">
+  <form method="post" class="form" id="new-report-form">
+    {{ form.hidden_tag() }}
+    <div class="form-row">
+      <label>{{ form.trade_date.label.text }}</label>
+      {{ form.trade_date(class="input") }}
+      {% for e in form.trade_date.errors %}<small class="err">{{ e }}</small>{% endfor %}
+    </div>
+    <div class="form-row">
+      <label>{{ form.title.label.text }}</label>
+      {{ form.title(class="input") }}
+      {% for e in form.title.errors %}<small class="err">{{ e }}</small>{% endfor %}
+    </div>
+    <div class="form-row">
+      <label>{{ form.raw_context.label.text }}</label>
+      <p class="muted small">
+        留空时自动从 <strong>12 个公开信源</strong>(腾讯财经 / 东方财富 / 第一财经 / 华尔街见闻 / 格隆汇 / 凤凰财经 / 金融界 / 汇通fx678 / IT之家)
+        并行拉取 A 股指数 / 美股 / 涨停股池 / 概念板块 / 7×24 资讯,拼成 raw_context 供多角色 Agent 消费,无需手填行情。
+      </p>
+      <div class="form-row inline" style="margin: 4px 0 8px;">
+        <button type="button" class="btn btn-ghost" id="btn-preview">🔍 预览自动采集内容</button>
+        <label style="font-size:12.5px;"><input type="checkbox" id="auto-fill" checked /> 提交时自动填充 (留空时)</label>
+      </div>
+      {{ form.raw_context(class="textarea", id="raw-context-area", rows=14, placeholder="(可空) 留空将自动拉取 12 个信源:指数/板块/涨停股池/快讯 实时拼装") }}
+      {% for e in form.raw_context.errors %}<small class="err">{{ e }}</small>{% endfor %}
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">创建并生成</button>
+      <a class="btn btn-ghost" href="{{ url_for('reports.index') }}">取消</a>
+    </div>
+  </form>
+</div>
+
+<div class="card" id="preview-card" style="display:none">
+  <h3 class="card-title">自动采集预览</h3>
+  <div id="preview-summary" class="muted small"></div>
+  <pre class="code" id="preview-text" style="max-height:480px;overflow:auto;"></pre>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (function(){
+    const btn = document.getElementById('btn-preview');
+    const card = document.getElementById('preview-card');
+    const sumEl = document.getElementById('preview-summary');
+    const txtEl = document.getElementById('preview-text');
+    if (!btn) return;
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      btn.textContent = '拉取中...';
+      card.style.display = 'block';
+      sumEl.textContent = '正在并行抓取 12 个信源...';
+      txtEl.textContent = '';
+      try {
+        const r = await fetch("{{ url_for('reports.preview_context') }}", {credentials:'same-origin'});
+        const j = await r.json();
+        if (!j.ok) {
+          sumEl.innerHTML = '<span class="err">失败: ' + (j.error || '未知') + '</span>';
+          return;
+        }
+        const lines = j.summary.map(s => {
+          const tag = s.ok ? '✅' : '❌';
+          return `${tag} ${s.source}  ${s.items} items  ${s.latency_ms}ms` + (s.error ? ` (${s.error.slice(0,60)})` : '');
+        });
+        sumEl.innerHTML = `总文本 ${j.length} 字符 · 耗时合计约 ${Math.max(...j.summary.map(x=>x.latency_ms))}ms<br>` + lines.join('<br>');
+        txtEl.textContent = j.text;
+        // 若用户没填,把 preview 灌进去
+        const ta = document.getElementById('raw-context-area');
+        if (document.getElementById('auto-fill').checked && (!ta.value || ta.value.length < 80)) {
+          ta.value = j.text;
+        }
+      } catch (e) {
+        sumEl.innerHTML = '<span class="err">请求失败: ' + e + '</span>';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🔍 预览自动采集内容';
+      }
+    });
+  })();
+</script>
+{% endblock %}

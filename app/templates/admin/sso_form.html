@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}{% if provider %}编辑 SSO Provider{% else %}新建 SSO Provider{% endif %}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h2>{% if provider %}编辑 · {{ provider.name }}{% else %}新建 SSO Provider{% endif %}</h2>
+  <a class="btn btn-ghost" href="{{ url_for('admin.sso_list') }}">返回</a>
+</div>
+
+<div class="card">
+  <form method="post" class="form">
+    {{ form.hidden_tag() }}
+    <div class="form-grid">
+      <div class="form-row">
+        <label>name</label>
+        {{ form.name(class="input") }}
+      </div>
+      <div class="form-row">
+        <label>display_name</label>
+        {{ form.display_name(class="input") }}
+      </div>
+      <div class="form-row">
+        <label>provider_type</label>
+        {{ form.provider_type(class="input") }}
+      </div>
+      <div class="form-row">
+        <label>client_id</label>
+        {{ form.client_id(class="input") }}
+      </div>
+      <div class="form-row">
+        <label>client_secret{% if provider %} (留空不改){% endif %}</label>
+        {{ form.client_secret(class="input") }}
+      </div>
+      <div class="form-row">
+        <label>scope</label>
+        {{ form.scope(class="input") }}
+      </div>
+      <div class="form-row">
+        <label>redirect_path</label>
+        {{ form.redirect_path(class="input") }}
+      </div>
+      <div class="form-row">
+        <label>sort_order</label>
+        {{ form.sort_order(class="input") }}
+      </div>
+      <div class="form-row inline">
+        <label>{{ form.auto_create_user() }} auto_create_user</label>
+        <label>{{ form.enabled() }} enabled</label>
+      </div>
+    </div>
+
+    <h3 class="section">端点</h3>
+    <div class="form-grid">
+      <div class="form-row">
+        <label>authorize_url</label>
+        {{ form.authorize_url(class="input") }}
+      </div>
+      <div class="form-row">
+        <label>token_url</label>
+        {{ form.token_url(class="input") }}
+      </div>
+      <div class="form-row">
+        <label>userinfo_url</label>
+        {{ form.userinfo_url(class="input") }}
+      </div>
+    </div>
+
+    <h3 class="section">userinfo 字段映射</h3>
+    <div class="form-grid">
+      <div class="form-row">
+        <label>username_field</label>
+        {{ form.username_field(class="input") }}
+      </div>
+      <div class="form-row">
+        <label>email_field</label>
+        {{ form.email_field(class="input") }}
+      </div>
+      <div class="form-row">
+        <label>display_name_field</label>
+        {{ form.display_name_field(class="input") }}
+      </div>
+      <div class="form-row">
+        <label>subject_field</label>
+        {{ form.subject_field(class="input") }}
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-primary" type="submit">保存</button>
+      <a class="btn btn-ghost" href="{{ url_for('admin.sso_list') }}">取消</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

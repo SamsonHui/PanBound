@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}报告列表 - {{ site_name }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h2>复盘报告</h2>
+  <a class="btn btn-primary" href="{{ url_for('reports.new') }}">+ 新建报告</a>
+</div>
+
+{% if latest %}
+<div class="card">
+  <h3 class="card-title">最近一份</h3>
+  <div class="latest-grid">
+    <div><span class="muted">日期</span><strong>{{ latest.trade_date }}</strong></div>
+    <div><span class="muted">标题</span><strong>{{ latest.title }}</strong></div>
+    <div><span class="muted">状态</span>
+      <span class="badge badge-{{ latest.status }}">{{ status_labels.get(latest.status, latest.status) }}</span>
+    </div>
+    <div><a class="btn" href="{{ url_for('reports.detail', report_id=latest.id) }}">查看详情</a></div>
+  </div>
+</div>
+{% endif %}
+
+<div class="card">
+  <h3 class="card-title">全部报告</h3>
+  {% if reports %}
+  <table class="table">
+    <thead>
+      <tr>
+        <th>#</th><th>交易日</th><th>标题</th><th>状态</th><th>创建时间</th><th>操作</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for r in reports %}
+      <tr>
+        <td>{{ r.id }}</td>
+        <td>{{ r.trade_date }}</td>
+        <td>{{ r.title }}</td>
+        <td><span class="badge badge-{{ r.status }}">{{ status_labels.get(r.status, r.status) }}</span></td>
+        <td>{{ r.created_at|datetime }}</td>
+        <td>
+          <a class="btn btn-ghost" href="{{ url_for('reports.detail', report_id=r.id) }}">详情</a>
+          {% if r.status == 'failed' %}
+          <form method="post" action="{{ url_for('reports.regenerate', report_id=r.id) }}" style="display:inline">
+            <button class="btn btn-ghost" type="submit">重试</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">还没有报告。<a href="{{ url_for('reports.new') }}">创建第一份</a>。</p>
+  {% endif %}
+</div>
+
+{% if pagination and pagination.pages > 1 %}
+<nav class="pagination">
+  {% if pagination.has_prev %}<a class="btn btn-ghost" href="?page={{ pagination.prev_num }}">‹ 上一页</a>{% endif %}
+  <span class="muted">第 {{ pagination.page }} / {{ pagination.pages }} 页</span>
+  {% if pagination.has_next %}<a class="btn btn-ghost" href="?page={{ pagination.next_num }}">下一页 ›</a>{% endif %}
+</nav>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}编辑用户 · {{ user.username }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h2>编辑用户 · {{ user.username }}</h2>
+  <a class="btn btn-ghost" href="{{ url_for('admin.users') }}">返回</a>
+</div>
+
+<div class="card">
+  <form method="post" class="form">
+    {{ form.hidden_tag() }}
+    <div class="form-grid">
+      <div class="form-row">
+        <label>role</label>
+        {{ form.role(class="input") }}
+      </div>
+      <div class="form-row inline">
+        <label>{{ form.is_active() }} is_active</label>
+        <label>{{ form.must_change_password() }} must_change_password</label>
+      </div>
+    </div>
+    <div class="form-row">
+      <label>重置密码 (留空不改)</label>
+      {{ form.new_password(class="input") }}
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" type="submit">保存</button>
+      <a class="btn btn-ghost" href="{{ url_for('admin.users') }}">取消</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

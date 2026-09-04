@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}{% if role %}编辑角色{% else %}新建角色{% endif %}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h2>{% if role %}编辑角色 · {{ role.name }}{% else %}新建角色{% endif %}</h2>
+  <a class="btn btn-ghost" href="{{ url_for('admin.roles') }}">返回</a>
+</div>
+
+<div class="card">
+  <form method="post" class="form">
+    {{ form.hidden_tag() }}
+    <div class="form-grid">
+      <div class="form-row">
+        <label>name</label>
+        {{ form.name(class="input", **{'readonly': True} if role and role.is_builtin else {}) }}
+        {% if role and role.is_builtin %}<small class="muted">内置角色 name 不可修改</small>{% endif %}
+      </div>
+      <div class="form-row">
+        <label>display_name</label>
+        {{ form.display_name(class="input") }}
+      </div>
+      <div class="form-row">
+        <label>role_group</label>
+        {{ form.role_group(class="input") }}
+      </div>
+      <div class="form-row">
+        <label>stance</label>
+        {{ form.stance(class="input") }}
+      </div>
+      <div class="form-row">
+        <label>temperature</label>
+        {{ form.temperature(class="input", step="0.1") }}
+      </div>
+      <div class="form-row">
+        <label>max_tokens</label>
+        {{ form.max_tokens(class="input") }}
+      </div>
+      <div class="form-row">
+        <label>sort_order</label>
+        {{ form.sort_order(class="input") }}
+      </div>
+      <div class="form-row inline">
+        <label>{{ form.use_thinking() }} use_thinking</label>
+        <label>{{ form.enabled() }} enabled</label>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label>description</label>
+      {{ form.description(class="input") }}
+    </div>
+
+    <div class="form-row">
+      <label>system_prompt</label>
+      {{ form.system_prompt(class="textarea", rows=18) }}
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-primary" type="submit">保存</button>
+      <a class="btn btn-ghost" href="{{ url_for('admin.roles') }}">取消</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

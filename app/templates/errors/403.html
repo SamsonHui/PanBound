@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}403{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>403 · 拒绝访问</h2>
+  <p class="muted">你没有权限访问该页面。</p>
+  <a class="btn btn-primary" href="{{ url_for('dashboard') }}">回到首页</a>
+</div>
+{% endblock %}

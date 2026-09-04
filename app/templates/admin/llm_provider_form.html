@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}{% if provider %}编辑 LLM Provider{% else %}新建 LLM Provider{% endif %}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h2>{% if provider %}编辑 · {{ provider.name }}{% else %}新建 LLM Provider{% endif %}</h2>
+  <a class="btn btn-ghost" href="{{ url_for('admin.llm_providers') }}">返回</a>
+</div>
+
+<div class="card">
+  <form method="post" class="form">
+    {{ form.hidden_tag() }}
+    <div class="form-grid">
+      <div class="form-row">
+        <label>name</label>
+        {{ form.name(class="input") }}
+      </div>
+      <div class="form-row">
+        <label>display_name</label>
+        {{ form.display_name(class="input") }}
+      </div>
+      <div class="form-row">
+        <label>provider_kind</label>
+        {{ form.provider_kind(class="input") }}
+      </div>
+      <div class="form-row">
+        <label>base_url</label>
+        {{ form.base_url(class="input", placeholder="https://你的中转站/v1") }}
+      </div>
+      <div class="form-row">
+        <label>api_key{% if provider %} (留空不改){% endif %}</label>
+        {{ form.api_key(class="input") }}
+      </div>
+      <div class="form-row">
+        <label>default_model</label>
+        {{ form.default_model(class="input") }}
+      </div>
+      <div class="form-row">
+        <label>thinking_mode</label>
+        {{ form.thinking_mode(class="input") }}
+      </div>
+      <div class="form-row">
+        <label>timeout(s)</label>
+        {{ form.timeout(class="input") }}
+      </div>
+      <div class="form-row">
+        <label>sort_order</label>
+        {{ form.sort_order(class="input") }}
+      </div>
+      <div class="form-row inline">
+        <label>{{ form.is_default() }} is_default</label>
+        <label>{{ form.enabled() }} enabled</label>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label>models_json (JSON 数组,可写多个模型名)</label>
+      {{ form.models_json(class="textarea", rows=3, placeholder='["gpt-4o", "claude-3.5"]') }}
+    </div>
+    <div class="form-row">
+      <label>extra_headers_json (JSON 对象,加自定义 header 如 X-API-Key)</label>
+      {{ form.extra_headers_json(class="textarea", rows=3, placeholder='{"X-Org-Id": "xxx"}') }}
+    </div>
+    <div class="form-row">
+      <label>note</label>
+      {{ form.note(class="input") }}
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-primary" type="submit">保存</button>
+      <a class="btn btn-ghost" href="{{ url_for('admin.llm_providers') }}">取消</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

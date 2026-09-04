@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}404{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>404 · 页面不存在</h2>
+  <p class="muted">你访问的资源找不到了。</p>
+  <a class="btn btn-primary" href="{{ url_for('dashboard') }}">回到首页</a>
+</div>
+{% endblock %}

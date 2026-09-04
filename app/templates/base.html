@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}{{ site_name }}{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  {% block head_extra %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+  {% if current_user.is_authenticated %}
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="{{ url_for('dashboard') }}">{{ site_name }}</a>
+      <nav class="topnav">
+        <a href="{{ url_for('reports.index') }}">我的报告</a>
+        <a href="{{ url_for('reports.new') }}">新建报告</a>
+        {% if current_user.is_admin %}
+          <span class="sep"></span>
+          <a href="{{ url_for('admin.roles') }}">角色</a>
+          <a href="{{ url_for('admin.sso_list') }}">SSO</a>
+          <a href="{{ url_for('admin.llm_providers') }}">LLM Provider</a>
+          <a href="{{ url_for('admin.users') }}">用户</a>
+        {% endif %}
+      </nav>
+      <div class="topbar-user">
+        <span class="muted">{{ current_user.username }}</span>
+        <a class="btn btn-ghost" href="{{ url_for('auth.logout') }}">退出</a>
+      </div>
+    </div>
+  </header>
+  {% endif %}
+
+  <main class="page">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flashes">
+          {% for category, msg in messages %}
+            <div class="flash flash-{{ category }}">{{ msg }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer">
+    <small class="muted">{{ site_name }} &middot; Flask + MiniMax-M3</small>
+  </footer>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>
